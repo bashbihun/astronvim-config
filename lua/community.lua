@@ -17,4 +17,10 @@ return {
 
   -- C / C++
   { import = "astrocommunity.pack.cpp" },
+
+  -- Vue.js (otomatis include pack typescript juga)
+  { import = "astrocommunity.pack.vue" },
+ 
+  -- Svelte (otomatis include pack typescript juga)
+  { import = "astrocommunity.pack.svelte" },
 }

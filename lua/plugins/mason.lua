@@ -7,12 +7,16 @@ return {
       "typescript-language-server", -- dipakai untuk Node & Bun (JS/TS)
       "gopls",
       "clangd",
+      "vue-language-server", -- vue (volar)
+      "svelte-language-server", -- svelte
+      "sqlls", -- sql (postgres/mysql/dll, via file .sqllsrc.json)
 
       -- Formatter
       "prettier", -- js/ts
       "gofumpt", -- go
       "goimports", -- go
       "clang-format", -- c/cpp
+      "sql-formatter", -- sql
       "stylua", -- lua config kamu sendiri
 
       -- Linter

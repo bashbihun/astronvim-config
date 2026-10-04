@@ -37,6 +37,11 @@ return {
         },
       },
 
+      -- SQL (Postgres/MySQL, dll — koneksi lewat .sqllsrc.json di root project)
+      sqlls = {
+        filetypes = { "sql", "mysql" },
+      },
+
       -- JS/TS (dipakai baik untuk project Node maupun Bun)
       tsserver = {
         settings = {
