@@ -27,6 +27,9 @@ return {
 
       -- C/C++ (GoogleTest, Catch2, doctest lewat CTest)
       "orjangj/neotest-ctest",
+
+       -- Java & Kotlin (project Gradle, JUnit)
+      "weilbith/neotest-gradle",
     },
     opts = function(_, opts)
       opts.adapters = opts.adapters or {}
@@ -62,6 +65,14 @@ return {
           frameworks = { "gtest", "catch2", "doctest" },
         })
       )
+
+         -- Java/Kotlin Gradle (pcall: kalau gagal load, adapter lain tetap jalan)
+      local ok_gradle, gradle = pcall(require, "neotest-gradle")
+      if ok_gradle then table.insert(opts.adapters, gradle) end
+ 
+      opts.status = { virtual_text = true }
+      opts.output = { open_on_run = true }
+      opts.quickfix = { open = false }
 
       opts.status = { virtual_text = true }
       opts.output = { open_on_run = true }
