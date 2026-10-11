@@ -31,6 +31,41 @@
 -- Build tool terdeteksi otomatis (gradlew/build.gradle(.kts) atau mvnw/pom.xml).
 -- Kalau project punya dua-duanya, Gradle diprioritaskan. Paksa pilihan dengan:
 --   :let g:jvm_build_tool = "maven"   (atau "gradle")
+-- Pakai mvn/gradle global (bukan mvnw/gradlew), mis. kalau wrapper gagal download:
+--   :let g:jvm_prefer_global = v:true   (otomatis true kalau ~/Tools/mvn atau ~/Tools/gradle ketemu)
+--   :let g:jvm_prefer_global = v:false  (paksa kembali ke mvnw/gradlew)
+
+-- ---------- lokasi Maven/Gradle yang diinstall manual ----------
+-- Default: ~/Tools/mvn dan ~/Tools/gradle (folder induk berisi bin/mvn, bin/gradle; boleh juga
+-- ada satu subfolder versi di dalamnya, mis. ~/Tools/mvn/apache-maven-3.10.0).
+-- Ganti dengan: vim.g.jvm_maven_home = "/path/maven"  /  vim.g.jvm_gradle_home = "/path/gradle"
+-- (set sebelum plugin dimuat, mis. di lua/polish.lua atau init.lua).
+-- Folder bin-nya ditambahkan ke PATH nvim, jadi `mvn`/`gradle` ketemu di terminal, generator project,
+-- dan runner. Kalau ketemu, `g:jvm_prefer_global` otomatis true (pakai mvn/gradle ini, bukan mvnw/gradlew)
+-- kecuali kamu set sendiri.
+local function tool_bin_dir(home, exe)
+  home = vim.fn.expand(home)
+  local candidates = { home .. "/bin", home }
+  for _, sub in ipairs(vim.fn.glob(home .. "/*/bin", false, true)) do table.insert(candidates, sub) end
+  for _, dir in ipairs(candidates) do
+    if vim.fn.executable(dir .. "/" .. exe) == 1 then return dir end
+  end
+end
+
+local function register_tool(home, exe)
+  local dir = tool_bin_dir(home, exe)
+  if not dir then return false end
+  if not (":" .. vim.env.PATH .. ":"):find(":" .. dir .. ":", 1, true) then
+    vim.env.PATH = dir .. ":" .. vim.env.PATH
+  end
+  return true
+end
+
+do
+  local found_mvn = register_tool(vim.g.jvm_maven_home or "~/Tools/mvn", "mvn")
+  local found_gradle = register_tool(vim.g.jvm_gradle_home or "~/Tools/gradle", "gradle")
+  if (found_mvn or found_gradle) and vim.g.jvm_prefer_global == nil then vim.g.jvm_prefer_global = true end
+end
 
 local function ask(prompt, default, cb)
   vim.ui.input({ prompt = prompt, default = default }, function(v)
@@ -49,8 +84,12 @@ end
 local function root_cmd()
   local cwd = vim.fn.getcwd()
   local function has(f) return vim.fn.filereadable(cwd .. "/" .. f) == 1 end
-  local gradle = has "gradlew" and "./gradlew" or ((has "build.gradle.kts" or has "build.gradle") and "gradle" or nil)
-  local maven = has "mvnw" and "./mvnw" or (has "pom.xml" and "mvn" or nil)
+  -- g:jvm_prefer_global = true -> pakai `mvn`/`gradle` global, abaikan mvnw/gradlew
+  -- (berguna kalau wrapper gagal download distribusi Maven/Gradle, mis. wget gagal / jaringan dibatasi)
+  local global = vim.g.jvm_prefer_global
+  local gradle = (has "gradlew" and not global) and "./gradlew"
+    or ((has "build.gradle.kts" or has "build.gradle") and "gradle" or nil)
+  local maven = (has "mvnw" and not global) and "./mvnw" or (has "pom.xml" and "mvn" or nil)
   local pref = vim.g.jvm_build_tool
   if pref == "maven" and maven then return maven, "maven" end
   if pref == "gradle" and gradle then return gradle, "gradle" end
