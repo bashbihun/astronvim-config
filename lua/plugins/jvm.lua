@@ -272,6 +272,15 @@ local function spring_new()
                     end)
                   end
                   vim.system({ "chmod", "+x", dest .. "/mvnw", dest .. "/gradlew" }):wait()
+                  -- neotest-java compile via jdtls: simpan nama parameter di bytecode (-parameters),
+                  -- kalau tidak, test Spring (@WebMvcTest/@MockBean) bisa gagal "parameter name information not available"
+                  if lang == "java" then
+                    vim.fn.mkdir(dest .. "/.settings", "p")
+                    vim.fn.writefile({
+                      "eclipse.preferences.version=1",
+                      "org.eclipse.jdt.core.compiler.codegen.methodParameters=generate",
+                    }, dest .. "/.settings/org.eclipse.jdt.core.prefs")
+                  end
                   finish(dest)
                 end)
               end)
