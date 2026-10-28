@@ -12,6 +12,9 @@
 --   * Java   (Maven & Gradle, JUnit 5/6, Spring)  -> neotest-java  (perlu jdtls aktif + `<leader>tJ` sekali)
 --   * Kotlin (Gradle)                             -> neotest-gradle (dibatasi hanya file .kt)
 --   * Kotlin (Maven) / project polos src/lib/bin -> belum ada adapter neotest; pakai <leader>Jf / JM / Jt (jvm.lua)
+--
+-- PHP/Laravel: neotest-phpunit (project PHPUnit) dan neotest-pest (project dengan tests/Pest.php).
+--   Cadangan lewat CLI: <leader>Pt / Pf / PM (php.lua).
 
 return {
   {
@@ -40,6 +43,10 @@ return {
 
       -- Kotlin (project Gradle, JUnit)
       "weilbith/neotest-gradle",
+
+      -- PHP / Laravel
+      "olimorris/neotest-phpunit",
+      "V13Axel/neotest-pest",
     },
     opts = function(_, opts)
       opts.adapters = opts.adapters or {}
@@ -102,6 +109,35 @@ return {
           end
         end
         table.insert(opts.adapters, gradle)
+      end
+
+      -- PHP: PHPUnit (dilewati di project Pest) dan Pest (hanya project yang punya tests/Pest.php),
+      -- supaya test tidak muncul dobel di summary. Laravel Sail terdeteksi otomatis oleh neotest-pest.
+      local ok_phpunit, phpunit = pcall(require, "neotest-phpunit")
+      if ok_phpunit then
+        local ok_a, adapter = pcall(phpunit, { root_ignore_files = { "tests/Pest.php" } })
+        if ok_a then
+          table.insert(opts.adapters, adapter)
+        else
+          vim.notify("neotest-phpunit gagal di-setup: " .. tostring(adapter), vim.log.levels.WARN)
+        end
+      end
+
+      local ok_pest, pest = pcall(require, "neotest-pest")
+      if ok_pest then
+        local ok_a, adapter = pcall(pest, {})
+        if ok_a then
+          local orig_root = adapter.root
+          if type(orig_root) == "function" then
+            adapter.root = function(dir)
+              local root = orig_root(dir)
+              if root and (vim.uv or vim.loop).fs_stat(root .. "/tests/Pest.php") then return root end
+            end
+          end
+          table.insert(opts.adapters, adapter)
+        else
+          vim.notify("neotest-pest gagal di-setup: " .. tostring(adapter), vim.log.levels.WARN)
+        end
       end
 
       opts.status = { virtual_text = true }

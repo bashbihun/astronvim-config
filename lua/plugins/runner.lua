@@ -129,6 +129,8 @@ local function get_run_cmd()
   elseif ft == "typescript" or ft == "javascriptreact" or ft == "typescriptreact" then
     -- TS butuh runtime yang bisa transpile langsung: bun
     return "bun run " .. vim.fn.shellescape(file)
+  elseif ft == "php" then
+    return "php " .. vim.fn.shellescape(file)
   elseif ft == "go" then
     return "go run " .. vim.fn.shellescape(file)
   elseif ft == "c" then

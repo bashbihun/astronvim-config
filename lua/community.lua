@@ -24,6 +24,10 @@ return {
   -- Svelte (otomatis include pack typescript juga)
   { import = "astrocommunity.pack.svelte" },
 
+  -- PHP + Laravel: phpactor, php-cs-fixer, php-debug-adapter, blade, laravel.nvim, ide-helper, blade-nav
+  -- (otomatis mengimpor pack php, html-css, dan blade). Butuh `php` + `composer` di sistem.
+  { import = "astrocommunity.pack.laravel" },
+
   -- Java: jdtls + nvim-jdtls + java-debug-adapter + java-test (+ lemminx buat pom.xml)
   -- Kotlin & Spring Boot ada di lua/plugins/jvm.lua
   { import = "astrocommunity.pack.java" },
